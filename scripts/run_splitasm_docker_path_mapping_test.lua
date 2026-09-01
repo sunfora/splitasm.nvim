@@ -182,7 +182,7 @@ local function main()
     build_container_binary(fixture.fixture_dir, output_dir, binary_path)
     assert_truthy(vim.fn.filereadable(binary_path) == 1, "container build should produce a host-visible binary")
 
-    local objdump_output = runtime.get_objdump_output(binary_path)
+    local objdump_output = runtime.get_objdump_output(config, binary_path)
     assert_truthy(type(objdump_output) == "string" and objdump_output ~= "", "objdump output should be available for the built binary")
     assert_truthy(objdump_output:match("/work/src/main%.cpp:%d+"), "raw objdump output should retain the in-container source path")
 

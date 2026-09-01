@@ -8,6 +8,7 @@ local defaults = {
     hide_address = false,
     source_row_colors = true,
     show_line_numbers = true,
+    preferred_objdump = nil,
 }
 
 local state = {
@@ -29,6 +30,33 @@ local function normalize_string(value, field_name)
     end
 
     return normalized
+end
+
+local function normalize_string_with_known_values(value, field_name, values)
+    if value == nil then
+      return nil
+    end
+
+    if type(value) ~= "string" then
+      goto error_print
+    end
+
+    for _, known_value in ipairs(values) do
+      if known_value == value then
+        return known_value
+      end
+    end
+    
+    ::error_print::
+    local values_string_literals = {}
+    local values_list_string = nil
+
+    for _, known_value in ipairs(values) do
+      table.insert(values_string_literals, string.format('"%q"', known_value))
+    end
+    values_list_string = table.concat(values_string_literals, ", ")
+
+    error(string.format("splitasm: %s must be a %s or nil", field_name, values_list_string))
 end
 
 local function normalize_boolean(value, field_name)
@@ -98,6 +126,9 @@ local function normalize_config(user_config)
         hide_address = normalize_boolean(user_config.hide_address, "hide_address"),
         source_row_colors = normalize_boolean(user_config.source_row_colors, "source_row_colors"),
         show_line_numbers = normalize_boolean(user_config.show_line_numbers, "show_line_numbers"),
+        preferred_objdump = normalize_string_with_known_values(
+          user_config.preferred_objdump, "preferred_objdump", {"gnu-objdump", "llvm-objdump"}
+        ),
     }
 end
 
@@ -119,6 +150,7 @@ function M.describe(config)
         string.format("Hide address: %s", active_config.hide_address and "enabled" or "disabled"),
         string.format("Source row colors: %s", active_config.source_row_colors and "enabled" or "disabled"),
         string.format("Show line numbers: %s", active_config.show_line_numbers and "enabled" or "disabled"),
+        string.format("Preferred objdump backend: %s", active_config.preferred_objdump or "not set"),
     }
 end
 
