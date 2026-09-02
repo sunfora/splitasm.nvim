@@ -14,7 +14,9 @@ end
 
 local function config_root_from_script()
     local script_dir = vim.fs.dirname(current_script_path())
-    return vim.fs.normalize(vim.fs.joinpath(script_dir, ".."))
+    local root_dir = vim.fs.normalize(vim.fs.joinpath(script_dir, ".."))
+    root_dir = vim.fn.fnamemodify(root_dir, ":p")
+    return root_dir
 end
 
 local function setup_runtime(root)
