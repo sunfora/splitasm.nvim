@@ -288,6 +288,10 @@ local function test_setup_validates_publishable_user_config()
     ok, err = pcall(splitasm.setup, { source_row_colors = "yes" })
     assert_eq(ok, false, "setup should reject non-boolean source_row_colors values")
     assert_match(err, "source_row_colors must be a boolean", "setup should describe invalid source_row_colors values")
+
+    ok, err = pcall(splitasm.setup, { strip_operand_sizes = "no" })
+    assert_eq(ok, false, "setup should reject non-boolean strip_operand_sizes values")
+    assert_match(err, "strip_operand_sizes must be a boolean", "setup should describe invalid strip_operand_sizes values")
 end
 
 local function test_open_returns_early_when_runtime_has_no_output()
@@ -419,6 +423,49 @@ local function test_open_renders_filtered_output_and_syncs_from_source_cursor()
     vim.api.nvim_win_set_cursor(state.source_win, { 4, 0 })
     vim.api.nvim_exec_autocmds("CursorMoved", { modeline = false })
     assert_eq(vim.api.nvim_win_get_cursor(state.asm_win)[1], 3, "source cursor movement should sync the asm cursor after open")
+end
+
+local function test_open_can_preserve_operand_sizes()
+    cleanup_splitasm()
+
+    -- Arrange
+    local source_path = write_source_file("operand-sizes", {
+        "int main(void) {",
+        "  return 0;",
+        "}",
+    })
+    local asm_output = table.concat({
+        source_path .. ":2",
+        "0000000000000000 <main()>:",
+        "  0000: movzx eax,WORD PTR [rdi]",
+    }, "\n")
+
+    vim.cmd("edit " .. vim.fn.fnameescape(source_path))
+    vim.api.nvim_win_set_cursor(0, { 2, 0 })
+
+    -- Act
+    with_mock_runtime({
+        load_asm_session = function()
+            return {
+                asm_output = asm_output,
+                full_exec_path = "/tmp/operand-size-demo-bin",
+            }
+        end,
+    }, function()
+        with_captured_notify(function()
+            splitasm.setup({
+                auto_sync = true,
+                hide_address = true,
+                strip_operand_sizes = false,
+            })
+            splitasm.open("./operand-size-demo-bin")
+        end)
+    end)
+
+    -- Assert
+    local state = splitasm_state.get()
+    local asm_lines = vim.api.nvim_buf_get_lines(state.asm_buf, 0, -1, false)
+    assert_eq(asm_lines[2], "  movzx eax, WORD PTR [rdi]", "open should preserve operand size qualifiers")
 end
 
 local function test_open_can_disable_source_row_colors()
@@ -784,6 +831,7 @@ function M.run()
     test_setup_validates_publishable_user_config()
     test_open_returns_early_when_runtime_has_no_output()
     test_open_renders_filtered_output_and_syncs_from_source_cursor()
+    test_open_can_preserve_operand_sizes()
     test_open_can_disable_source_row_colors()
     test_open_repaints_stable_source_row_colors_across_refreshes()
     test_open_keeps_same_tone_within_source_row_and_shifts_between_source_rows()

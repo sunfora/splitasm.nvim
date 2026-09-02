@@ -67,6 +67,7 @@ Configured setup: >lua
     },
     auto_sync = true,
     clean_asm = false,
+    strip_operand_sizes = false,
     source_row_colors = true,
   })
 <
@@ -108,6 +109,7 @@ Defaults: >lua
     source_path_mappings = {},
     auto_sync = true,
     clean_asm = false,
+    strip_operand_sizes = false,
     source_row_colors = true,
   })
 <
@@ -135,6 +137,10 @@ Options:
 
   clean_asm       (boolean)
     Remove source-marker lines and normalize instruction text for readability.
+
+  strip_operand_sizes (boolean)
+    Remove `BYTE PTR`, `WORD PTR`, and similar operand-size qualifiers from
+    normalized instruction text. Default is false; set to true to remove them.
 
   source_row_colors (boolean)
     Apply stable source-row coloring to the asm text and line-number column.

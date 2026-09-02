@@ -316,13 +316,15 @@ function M.build_line_map(asm_lines, opts)
     return file_line_maps, asm_to_source, asm_to_file, asm_metadata
 end
 
-local function normalize_instruction_line(line, strip_address)
+local function normalize_instruction_line(line, strip_address, strip_operand_sizes)
     local indent, addr_hex, rest = line:match("^(%s*)(%x+):%s+(.*)$")
     if not indent or not addr_hex then
         return nil
     end
 
-    rest = rest:gsub("%u+ PTR ", "")
+    if strip_operand_sizes then
+        rest = rest:gsub("%u+ PTR ", "")
+    end
     rest = rest:gsub(",(%S)", ", %1")
     if strip_address then
         return indent .. rest
@@ -331,12 +333,12 @@ local function normalize_instruction_line(line, strip_address)
     end
 end
 
-local function normalize_output_line(line, clean_asm)
+local function normalize_output_line(line, clean_asm, strip_operand_sizes)
     if is_source_marker(line) then
         return nil
     end
 
-    local normalized = normalize_instruction_line(line, clean_asm)
+    local normalized = normalize_instruction_line(line, clean_asm, strip_operand_sizes)
     if normalized then
         return normalized
     end
@@ -357,12 +359,12 @@ local function normalize_output_line(line, clean_asm)
     return line
 end
 
-function M.normalize_asm_lines(asm_lines, clean_asm)
+function M.normalize_asm_lines(asm_lines, clean_asm, strip_operand_sizes)
     local filtered_lines = {}
     local old_to_new = {}
 
     for index, line in ipairs(asm_lines) do
-        local normalized = normalize_output_line(line, clean_asm)
+        local normalized = normalize_output_line(line, clean_asm, strip_operand_sizes)
         if normalized then
             filtered_lines[#filtered_lines + 1] = normalized
             old_to_new[index] = #filtered_lines
@@ -424,7 +426,11 @@ function M.parse(asm_lines, opts)
         source_path_mappings = opts.source_path_mappings,
         inferred_source_path_mappings = inferred_source_path_mappings,
     })
-    local filtered_lines, old_to_new = M.normalize_asm_lines(asm_lines, opts.clean_asm)
+    local filtered_lines, old_to_new = M.normalize_asm_lines(
+        asm_lines,
+        opts.clean_asm,
+        opts.strip_operand_sizes
+    )
     local file_line_maps, asm_to_source, asm_to_file, asm_metadata = M.remap_source_mappings(
         raw_file_line_maps,
         raw_asm_to_source,

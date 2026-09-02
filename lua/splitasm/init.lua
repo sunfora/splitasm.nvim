@@ -184,6 +184,7 @@ function M.open(exec_path_override)
 
     local parsed = parser.parse(asm_lines, {
         clean_asm = config.hide_address,
+        strip_operand_sizes = config.strip_operand_sizes,
         source_path_mappings = config.source_path_mappings,
         current_source_path = current_file,
     })

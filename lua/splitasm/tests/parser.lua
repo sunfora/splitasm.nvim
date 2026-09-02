@@ -98,7 +98,10 @@ local function test_parse_remaps_filtered_output_for_public_open_flow()
     }
 
     -- Act
-    local parsed = parser.parse(asm_lines, { clean_asm = true })
+    local parsed = parser.parse(asm_lines, {
+        clean_asm = true,
+        strip_operand_sizes = true,
+    })
 
     -- Assert
     assert_eq(#parsed.asm_lines, 4, "filtered asm line count")
@@ -153,6 +156,25 @@ local function test_parse_with_cleaning_drops_empty_source_ranges()
     assert_range(parsed.file_line_maps["/tmp/example.c"][11], 2, 2, "line 11 remap should survive cleaning")
     assert_nil(parsed.asm_metadata[1], "label line should stay unmapped after cleaning")
     assert_source_metadata(parsed.asm_metadata[2], "/tmp/example.c", 11, "/tmp/example.c:11", 1, "line 11 metadata should survive cleaning")
+end
+
+local function test_parse_can_preserve_operand_sizes()
+    -- Arrange
+    local asm_lines = {
+        "/tmp/example.c:10",
+        "  0000: movzx eax,WORD PTR [rdi]",
+        "  0004: movzx edx,BYTE PTR [rdi+0x2]",
+    }
+
+    -- Act
+    local parsed = parser.parse(asm_lines, {
+        clean_asm = true,
+        strip_operand_sizes = false,
+    })
+
+    -- Assert
+    assert_eq(parsed.asm_lines[1], "  movzx eax, WORD PTR [rdi]", "word operand size should be preserved")
+    assert_eq(parsed.asm_lines[2], "  movzx edx, BYTE PTR [rdi+0x2]", "byte operand size should be preserved")
 end
 
 local function test_build_line_map_normalizes_windows_source_markers()
@@ -310,6 +332,7 @@ function M.run()
     test_parse_remaps_filtered_output_for_public_open_flow()
     test_parse_without_cleaning_preserves_non_source_lines()
     test_parse_with_cleaning_drops_empty_source_ranges()
+    test_parse_can_preserve_operand_sizes()
     test_build_line_map_normalizes_windows_source_markers()
     test_parse_normalizes_windows_paths_in_public_results()
     test_build_line_map_remaps_container_paths_to_local_paths()

@@ -58,7 +58,6 @@ SplitAsm reads assembly through one of these backend-specific commands:
 - GNU `objdump -d -Mintel --no-show-raw-insn -l -C`
 - LLVM `llvm-objdump -d -M intel --no-show-raw-insn -l -C`
 
-
 ## Installation
 
 ### lazy.nvim
@@ -96,6 +95,7 @@ require("splitasm").setup({
   },
   auto_sync = true,
   hide_address = false,
+  strip_operand_sizes = false,
   source_row_colors = true,
   show_line_numbers = true,
   preferred_objdump = "llvm-objdump",
@@ -141,6 +141,7 @@ require("splitasm").setup({
   source_path_mappings = {},
   auto_sync = true,
   hide_address = false,
+  strip_operand_sizes = false,
   source_row_colors = true,
   show_line_numbers = true,
   preferred_objdump = nil,
@@ -154,6 +155,7 @@ require("splitasm").setup({
 | `source_path_mappings` | `{}` | Remap debug-info source prefixes to local paths, e.g. `{ from = "/work/src", to = vim.fn.getcwd() }` for container builds |
 | `auto_sync` | `true` | Keep source and assembly cursors aligned on movement |
 | `hide_address` | `false` | Strip address column from assembly output |
+| `strip_operand_sizes` | `false` | Strip `BYTE PTR`, `WORD PTR`, and similar operand-size qualifiers from assembly output |
 | `source_row_colors` | `true` | Apply stable subtle line highlights to asm rows that map back to a source line |
 | `show_line_numbers` | `true` | Show line number column in the assembly split |
 | `preferred_objdump` | `nil` | Prefer specific objdump backend: `"gnu-objdump"`, `"llvm-objdump"` |

@@ -6,6 +6,7 @@ local defaults = {
     source_path_mappings = {},
     auto_sync = true,
     hide_address = false,
+    strip_operand_sizes = false,
     source_row_colors = true,
     show_line_numbers = true,
     preferred_objdump = nil,
@@ -124,6 +125,7 @@ local function normalize_config(user_config)
         source_path_mappings = normalize_source_path_mappings(user_config.source_path_mappings),
         auto_sync = normalize_boolean(user_config.auto_sync, "auto_sync"),
         hide_address = normalize_boolean(user_config.hide_address, "hide_address"),
+        strip_operand_sizes = normalize_boolean(user_config.strip_operand_sizes, "strip_operand_sizes"),
         source_row_colors = normalize_boolean(user_config.source_row_colors, "source_row_colors"),
         show_line_numbers = normalize_boolean(user_config.show_line_numbers, "show_line_numbers"),
         preferred_objdump = normalize_string_with_known_values(
@@ -148,6 +150,7 @@ function M.describe(config)
         string.format("Source path mappings: %d configured", #(active_config.source_path_mappings or {})),
         string.format("Auto-sync: %s", active_config.auto_sync and "enabled" or "disabled"),
         string.format("Hide address: %s", active_config.hide_address and "enabled" or "disabled"),
+        string.format("Strip operand sizes: %s", active_config.strip_operand_sizes and "enabled" or "disabled"),
         string.format("Source row colors: %s", active_config.source_row_colors and "enabled" or "disabled"),
         string.format("Show line numbers: %s", active_config.show_line_numbers and "enabled" or "disabled"),
         string.format("Preferred objdump backend: %s", active_config.preferred_objdump or "not set"),
