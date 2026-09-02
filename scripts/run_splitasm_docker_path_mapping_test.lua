@@ -196,6 +196,9 @@ local function main()
     vim.api.nvim_set_current_win(state.asm_win)
     vim.api.nvim_win_set_cursor(state.asm_win, { asm_line, 0 })
     vim.api.nvim_exec_autocmds("CursorMoved", { buffer = state.asm_buf, modeline = false })
+    vim.wait(100, function()
+      return vim.api.nvim_win_get_cursor(state.source_win)[1] == source_line
+    end)
 
     assert_eq(vim.api.nvim_buf_get_name(state.source_buf), fixture.source_path, "asm-to-source sync should open the local fixture path")
     assert_eq(vim.api.nvim_win_get_cursor(state.source_win)[1], source_line, "asm-to-source sync should jump to the remapped local line")
