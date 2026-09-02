@@ -236,7 +236,7 @@ local function looks_like_source_path(source_path)
 end
 
 parse_source_marker = function(line)
-    local source_path, source_line_num = line:match("^%s*(.+):(%d+)%s*$")
+    local source_path, source_line_num = line:match("^%s*(.+):(%d+).*$")
     if not source_path or not source_line_num or not looks_like_source_path(source_path) then
         return nil
     end
