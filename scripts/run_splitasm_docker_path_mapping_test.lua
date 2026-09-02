@@ -170,6 +170,15 @@ local function main()
         skip("docker daemon is unavailable")
     end
 
+    local config = {
+        executable_path = binary_path,
+        hide_address = true,
+        auto_sync = true,
+        source_path_mappings = {
+            { from = "/work/src", to = fixture.fixture_dir },
+        },
+    }
+
     build_container_binary(fixture.fixture_dir, output_dir, binary_path)
     assert_truthy(vim.fn.filereadable(binary_path) == 1, "container build should produce a host-visible binary")
 
@@ -178,14 +187,7 @@ local function main()
     assert_truthy(objdump_output:match("/work/src/main%.cpp:%d+"), "raw objdump output should retain the in-container source path")
 
     vim.cmd("edit " .. vim.fn.fnameescape(fixture.source_path))
-    splitasm.setup({
-        executable_path = binary_path,
-        hide_address = true,
-        auto_sync = true,
-        source_path_mappings = {
-            { from = "/work/src", to = fixture.fixture_dir },
-        },
-    })
+    splitasm.setup(config)
     splitasm.open(binary_path)
 
     local state = splitasm_state.get()
@@ -195,6 +197,7 @@ local function main()
 
     vim.api.nvim_set_current_win(state.asm_win)
     vim.api.nvim_win_set_cursor(state.asm_win, { asm_line, 0 })
+
     vim.api.nvim_exec_autocmds("CursorMoved", { buffer = state.asm_buf, modeline = false })
     vim.wait(100, function()
       return vim.api.nvim_win_get_cursor(state.source_win)[1] == source_line
