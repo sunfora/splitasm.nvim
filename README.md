@@ -98,6 +98,7 @@ require("splitasm").setup({
   hide_address = false,
   source_row_colors = true,
   show_line_numbers = true,
+  preferred_objdump = "llvm-objdump",
 })
 ```
 
@@ -142,6 +143,7 @@ require("splitasm").setup({
   hide_address = false,
   source_row_colors = true,
   show_line_numbers = true,
+  preferred_objdump = nil,
 })
 ```
 
@@ -154,6 +156,7 @@ require("splitasm").setup({
 | `hide_address` | `false` | Strip address column from assembly output |
 | `source_row_colors` | `true` | Apply stable subtle line highlights to asm rows that map back to a source line |
 | `show_line_numbers` | `true` | Show line number column in the assembly split |
+| `preferred_objdump` | `nil` | Prefer specific objdump backend: `"gnu-objdump"`, `"llvm-objdump"` |
 
 `require("splitasm").setup()` remains intentionally small. SplitAsm validates
 option types up front and reports invalid values immediately.

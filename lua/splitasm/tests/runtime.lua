@@ -200,7 +200,7 @@ local function test_get_objdump_output_uses_backend_specific_argument_shapes()
             return command
         end,
     }, function()
-        local command = runtime.get_objdump_output("C:/build/main.exe")
+        local command = runtime.get_objdump_output({}, "C:/build/main.exe")
 
         assert_eq(command[1], "C:/LLVM/bin/llvm-objdump.exe", "llvm backend should run the resolved executable path")
         assert_eq(command[2], "-d", "llvm backend should disassemble")

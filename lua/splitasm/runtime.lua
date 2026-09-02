@@ -192,7 +192,9 @@ local function build_backend_status(backend, resolved_command)
     }
 end
 
-local function discover_objdump_backends()
+local function discover_objdump_backends(config)
+    local preferred_backend = config.preferred_objdump;
+
     local statuses = {}
     local selected_backend = nil
 
@@ -208,8 +210,14 @@ local function discover_objdump_backends()
 
         local status = build_backend_status(backend, resolved_command)
         statuses[#statuses + 1] = status
-        if not selected_backend and status.available then
+
+        if status.available then
+          if not selected_backend then
+              selected_backend = status
+          end
+          if status.id == preferred_backend then
             selected_backend = status
+          end
         end
     end
 
@@ -276,7 +284,7 @@ function M.inspect(opts)
     local full_exec_path = resolved_exec_path and vim.fn.expand(resolved_exec_path) or nil
     local executable_exists = full_exec_path ~= nil
         and (vim.fn.filereadable(full_exec_path) == 1 or vim.fn.executable(full_exec_path) == 1)
-    local objdump_backend, objdump_candidates = discover_objdump_backends()
+    local objdump_backend, objdump_candidates = discover_objdump_backends(config)
 
     return {
         config = config,
@@ -376,7 +384,7 @@ function M.ensure_executable_exists(exec_path)
 end
 
 function M.prepare_executable(config, exec_path_override, source_path)
-    local backend, statuses = discover_objdump_backends()
+    local backend, statuses = discover_objdump_backends(config)
     if not backend then
         notify_once(build_missing_backend_message(statuses), vim.log.levels.ERROR)
         return nil
@@ -407,8 +415,9 @@ function M.prepare_executable(config, exec_path_override, source_path)
     return M.ensure_executable_exists(status.resolved_exec_path)
 end
 
-function M.get_objdump_output(full_exec_path)
-    local backend, statuses = discover_objdump_backends()
+function M.get_objdump_output(config, full_exec_path)
+    local backend, statuses = discover_objdump_backends(config)
+
     if not backend then
         notify_once(build_missing_backend_message(statuses), vim.log.levels.ERROR)
         return nil
@@ -435,21 +444,29 @@ function M.get_objdump_output(full_exec_path)
 end
 
 function M.load_asm_output(opts)
-    local full_exec_path = M.prepare_executable(opts.config, opts.exec_path_override, opts.source_path)
+    local config = opts.config
+    local exec_path_override = opts.exec_path_override
+    local source_path = opts.source_path
+
+    local full_exec_path = M.prepare_executable(config, exec_path_override, source_path)
     if not full_exec_path then
         return nil
     end
 
-    return M.get_objdump_output(full_exec_path)
+    return M.get_objdump_output(config, full_exec_path)
 end
 
 function M.load_asm_session(opts)
-    local full_exec_path = M.prepare_executable(opts.config, opts.exec_path_override, opts.source_path)
+    local config = opts.config
+    local exec_path_override = opts.exec_path_override
+    local source_path = opts.source_path
+
+    local full_exec_path = M.prepare_executable(config, exec_path_override, source_path)
     if not full_exec_path then
         return nil
     end
 
-    local asm_output = M.get_objdump_output(full_exec_path)
+    local asm_output = M.get_objdump_output(config, full_exec_path)
     if not asm_output then
         return nil
     end
